@@ -3,8 +3,17 @@ from app.model.escola import Escola
 from app.db import db
 from flasgger import swag_from
 from sqlalchemy import and_
+import requests
 
 escola_routes = Blueprint('escola_routes', __name__)
+
+def buscar_endereco_por_cep(cep):
+    url = f"https://viacep.com.br/ws/{cep}/json/"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return None
 
 @escola_routes.route('/escolas', methods=['POST'])
 @swag_from({
@@ -20,11 +29,22 @@ escola_routes = Blueprint('escola_routes', __name__)
                 'properties': {
                     'nome': {'type': 'string'},
                     'telefone': {'type': 'string'},
-                    'endereco': {'type': 'string'},
+                    'cep': {'type': 'string'},
+                    'numero': {'type': 'string'},  
                     'mensalidade': {'type': 'number'},
                     'quantidade_alunos': {'type': 'integer'},
                     'metodologia': {'type': 'string'},
                     'email': {'type': 'string'}
+                },
+                'example': {
+                    'nome': 'Escola Exemplo',
+                    'telefone': '(11) 1234-5678',
+                    'cep': '01000-000',
+                    'numero': '123',  
+                    'mensalidade': 1500.00,
+                    'quantidade_alunos': 250,
+                    'metodologia': 'Construtivista',
+                    'email': 'contato@escolaexemplo.com.br'
                 }
             }
         }
@@ -32,15 +52,28 @@ escola_routes = Blueprint('escola_routes', __name__)
     'responses': {
         201: {
             'description': 'Escola criada com sucesso'
+        },
+        400: {
+            'description': 'Erro ao criar a escola'
         }
     }
 })
 def create_escola():
     data = request.json
+
+    cep_info = buscar_endereco_por_cep(data['cep'])
+    if not cep_info or 'erro' in cep_info:
+        return jsonify({"error": "CEP inválido"}), 400
+
     new_escola = Escola(
         nome=data['nome'],
         telefone=data['telefone'],
-        endereco=data['endereco'],
+        rua=cep_info['logradouro'],
+        numero=data['numero'],  
+        bairro=cep_info['bairro'],
+        cidade=cep_info['localidade'],
+        estado=cep_info['uf'],
+        cep=data['cep'],
         mensalidade=data['mensalidade'],
         quantidade_alunos=data['quantidade_alunos'],
         metodologia=data['metodologia'],
@@ -65,13 +98,37 @@ def create_escola():
                         'id': {'type': 'integer'},
                         'nome': {'type': 'string'},
                         'telefone': {'type': 'string'},
-                        'endereco': {'type': 'string'},
+                        'rua': {'type': 'string'},
+                        'numero': {'type': 'string'},  
+                        'bairro': {'type': 'string'},
+                        'cidade': {'type': 'string'},
+                        'estado': {'type': 'string'},
+                        'cep': {'type': 'string'},
                         'mensalidade': {'type': 'number'},
                         'quantidade_alunos': {'type': 'integer'},
                         'metodologia': {'type': 'string'},
-                        'email': {'type': 'string'}
+                        'email': {'type': 'string'},
+                        'avaliacao': {'type': 'number'}
                     }
-                }
+                },
+                'example': [
+                    {
+                        'id': 1,
+                        'nome': 'Escola Exemplo',
+                        'telefone': '(11) 1234-5678',
+                        'rua': 'Rua das Flores',
+                        'numero': '123', 
+                        'bairro': 'Centro',
+                        'cidade': 'São Paulo',
+                        'estado': 'SP',
+                        'cep': '01000-000',
+                        'mensalidade': 1500.00,
+                        'quantidade_alunos': 250,
+                        'metodologia': 'Construtivista',
+                        'email': 'contato@escolaexemplo.com.br',
+                        'avaliacao': 4.5
+                    }
+                ]
             }
         }
     }
@@ -82,40 +139,69 @@ def get_escolas():
         'id': e.id,
         'nome': e.nome,
         'telefone': e.telefone,
-        'endereco': e.endereco,
+        'rua': e.rua,
+        'numero': e.numero, 
+        'bairro': e.bairro,
+        'cidade': e.cidade,
+        'estado': e.estado,
+        'cep': e.cep,
         'mensalidade': e.mensalidade,
         'quantidade_alunos': e.quantidade_alunos,
         'metodologia': e.metodologia,
-        'email': e.email
+        'email': e.email,
+        'avaliacao': e.avaliacao
     } for e in escolas]
     return jsonify(result), 200
 
 @escola_routes.route('/escolas/<int:id>', methods=['GET'])
 @swag_from({
     'tags': ['Escolas'],
-    'description': 'Obter uma escola por ID',
+    'description': 'Obtém os detalhes de uma escola por ID',
     'parameters': [
         {
             'name': 'id',
             'in': 'path',
             'required': True,
-            'type': 'integer'
+            'type': 'integer',
+            'description': 'ID da escola'
         }
     ],
     'responses': {
         200: {
-            'description': 'Dados da escola',
+            'description': 'Detalhes da escola',
             'schema': {
                 'type': 'object',
                 'properties': {
                     'id': {'type': 'integer'},
                     'nome': {'type': 'string'},
                     'telefone': {'type': 'string'},
-                    'endereco': {'type': 'string'},
+                    'rua': {'type': 'string'},
+                    'numero': {'type': 'string'}, 
+                    'bairro': {'type': 'string'},
+                    'cidade': {'type': 'string'},
+                    'estado': {'type': 'string'},
+                    'cep': {'type': 'string'},
                     'mensalidade': {'type': 'number'},
                     'quantidade_alunos': {'type': 'integer'},
                     'metodologia': {'type': 'string'},
-                    'email': {'type': 'string'}
+                    'email': {'type': 'string'},
+                    'avaliacao': {'type': 'number'}
+                },
+                'example': {
+                    'id': 1,
+                    'nome': 'Escola Exemplo',
+                    'telefone': '(11) 1234-5678',
+                    'rua': 'Rua das Flores',
+                    'numero': '123', 
+                    'bairro': 'Centro',
+                    'cidade': 'São Paulo',
+                    'estado': 'SP',
+                    'cep': '01000-000',
+                    'mensalidade': 1500.00,
+                    'quantidade_alunos': 250,
+                    'metodologia': 'Construtivista',
+                    'email': 'contato@escolaexemplo.com.br',
+                    'avaliacao': 4.5
                 }
             }
         },
@@ -130,11 +216,17 @@ def get_escola(id):
         'id': escola.id,
         'nome': escola.nome,
         'telefone': escola.telefone,
-        'endereco': escola.endereco,
+        'rua': escola.rua,
+        'numero': escola.numero, 
+        'bairro': escola.bairro,
+        'cidade': escola.cidade,
+        'estado': escola.estado,
+        'cep': escola.cep,
         'mensalidade': escola.mensalidade,
         'quantidade_alunos': escola.quantidade_alunos,
         'metodologia': escola.metodologia,
-        'email': escola.email
+        'email': escola.email,
+        'avaliacao': escola.avaliacao
     }
     return jsonify(result), 200
 
@@ -147,7 +239,8 @@ def get_escola(id):
             'name': 'id',
             'in': 'path',
             'required': True,
-            'type': 'integer'
+            'type': 'integer',
+            'description': 'ID da escola a ser atualizada'
         },
         {
             'name': 'escola',
@@ -156,13 +249,34 @@ def get_escola(id):
             'schema': {
                 'type': 'object',
                 'properties': {
-                    'nome': {'type': 'string'},
-                    'telefone': {'type': 'string'},
-                    'endereco': {'type': 'string'},
-                    'mensalidade': {'type': 'number'},
-                    'quantidade_alunos': {'type': 'integer'},
-                    'metodologia': {'type': 'string'},
-                    'email': {'type': 'string'}
+                    'nome': {'type': 'string', 'description': 'Nome da escola'},
+                    'telefone': {'type': 'string', 'description': 'Telefone da escola'},
+                    'rua': {'type': 'string', 'description': 'Rua da escola'},
+                    'numero': {'type': 'string', 'description': 'Número do endereço'}, 
+                    'bairro': {'type': 'string', 'description': 'Bairro da escola'},
+                    'cidade': {'type': 'string', 'description': 'Cidade da escola'},
+                    'estado': {'type': 'string', 'description': 'Estado da escola (UF)'},
+                    'cep': {'type': 'string', 'description': 'CEP da escola'},
+                    'mensalidade': {'type': 'number', 'description': 'Mensalidade da escola'},
+                    'quantidade_alunos': {'type': 'integer', 'description': 'Quantidade de alunos matriculados'},
+                    'metodologia': {'type': 'string', 'description': 'Metodologia de ensino da escola'},
+                    'email': {'type': 'string', 'description': 'Email de contato da escola'},
+                    'avaliacao': {'type': 'number', 'description': 'Avaliação média da escola'}
+                },
+                'example': {
+                    'nome': 'Escola Exemplo',
+                    'telefone': '(11) 1234-5678',
+                    'rua': 'Rua das Flores',
+                    'numero': '123',  
+                    'bairro': 'Centro',
+                    'cidade': 'São Paulo',
+                    'estado': 'SP',
+                    'cep': '01000-000',
+                    'mensalidade': 1500.00,
+                    'quantidade_alunos': 250,
+                    'metodologia': 'Construtivista',
+                    'email': 'contato@escolaexemplo.com.br',
+                    'avaliacao': 4.5
                 }
             }
         }
@@ -180,13 +294,25 @@ def update_escola(id):
     escola = Escola.query.get_or_404(id)
     data = request.json
 
+    if 'cep' in data:
+        cep_info = buscar_endereco_por_cep(data['cep'])
+        if not cep_info or 'erro' in cep_info:
+            return jsonify({"error": "CEP inválido"}), 400
+
+        escola.rua = cep_info.get('logradouro', escola.rua)
+        escola.bairro = cep_info.get('bairro', escola.bairro)
+        escola.cidade = cep_info.get('localidade', escola.cidade)
+        escola.estado = cep_info.get('uf', escola.estado)
+        escola.cep = data['cep']
+
     escola.nome = data.get('nome', escola.nome)
     escola.telefone = data.get('telefone', escola.telefone)
-    escola.endereco = data.get('endereco', escola.endereco)
+    escola.numero = data.get('numero', escola.numero)  
     escola.mensalidade = data.get('mensalidade', escola.mensalidade)
     escola.quantidade_alunos = data.get('quantidade_alunos', escola.quantidade_alunos)
     escola.metodologia = data.get('metodologia', escola.metodologia)
     escola.email = data.get('email', escola.email)
+    escola.avaliacao = data.get('avaliacao', escola.avaliacao)
 
     db.session.commit()
     return jsonify({"message": "Escola atualizada com sucesso"}), 200
@@ -200,7 +326,8 @@ def update_escola(id):
             'name': 'id',
             'in': 'path',
             'required': True,
-            'type': 'integer'
+            'type': 'integer',
+            'description': 'ID da escola a ser deletada'
         }
     ],
     'responses': {
@@ -218,8 +345,6 @@ def delete_escola(id):
     db.session.commit()
     return '', 204
 
-# Rotas para filtros
-
 @escola_routes.route('/escolas/filtro/metodologia', methods=['GET'])
 @swag_from({
     'tags': ['Escolas'],
@@ -229,7 +354,8 @@ def delete_escola(id):
             'name': 'metodologia',
             'in': 'query',
             'required': True,
-            'type': 'string'
+            'type': 'string',
+            'description': 'Metodologia de ensino da escola'
         }
     ],
     'responses': {
@@ -243,11 +369,17 @@ def delete_escola(id):
                         'id': {'type': 'integer'},
                         'nome': {'type': 'string'},
                         'telefone': {'type': 'string'},
-                        'endereco': {'type': 'string'},
+                        'rua': {'type': 'string'},
+                        'numero': {'type': 'string'},  
+                        'bairro': {'type': 'string'},
+                        'cidade': {'type': 'string'},
+                        'estado': {'type': 'string'},
+                        'cep': {'type': 'string'},
                         'mensalidade': {'type': 'number'},
                         'quantidade_alunos': {'type': 'integer'},
                         'metodologia': {'type': 'string'},
-                        'email': {'type': 'string'}
+                        'email': {'type': 'string'},
+                        'avaliacao': {'type': 'number'}
                     }
                 }
             }
@@ -261,11 +393,17 @@ def filtro_metodologia():
         'id': e.id,
         'nome': e.nome,
         'telefone': e.telefone,
-        'endereco': e.endereco,
+        'rua': e.rua,
+        'numero': e.numero,  
+        'bairro': e.bairro,
+        'cidade': e.cidade,
+        'estado': e.estado,
+        'cep': e.cep,
         'mensalidade': e.mensalidade,
         'quantidade_alunos': e.quantidade_alunos,
         'metodologia': e.metodologia,
-        'email': e.email
+        'email': e.email,
+        'avaliacao': e.avaliacao
     } for e in escolas]
     return jsonify(result), 200
 
@@ -278,13 +416,15 @@ def filtro_metodologia():
             'name': 'min_preco',
             'in': 'query',
             'required': True,
-            'type': 'number'
+            'type': 'number',
+            'description': 'Preço mínimo da mensalidade'
         },
         {
             'name': 'max_preco',
             'in': 'query',
             'required': True,
-            'type': 'number'
+            'type': 'number',
+            'description': 'Preço máximo da mensalidade'
         }
     ],
     'responses': {
@@ -298,11 +438,17 @@ def filtro_metodologia():
                         'id': {'type': 'integer'},
                         'nome': {'type': 'string'},
                         'telefone': {'type': 'string'},
-                        'endereco': {'type': 'string'},
+                        'rua': {'type': 'string'},
+                        'numero': {'type': 'string'},
+                        'bairro': {'type': 'string'},
+                        'cidade': {'type': 'string'},
+                        'estado': {'type': 'string'},
+                        'cep': {'type': 'string'},
                         'mensalidade': {'type': 'number'},
                         'quantidade_alunos': {'type': 'integer'},
                         'metodologia': {'type': 'string'},
-                        'email': {'type': 'string'}
+                        'email': {'type': 'string'},
+                        'avaliacao': {'type': 'number'}
                     }
                 }
             }
@@ -317,11 +463,17 @@ def filtro_preco():
         'id': e.id,
         'nome': e.nome,
         'telefone': e.telefone,
-        'endereco': e.endereco,
+        'rua': e.rua,
+        'numero': e.numero, 
+        'bairro': e.bairro,
+        'cidade': e.cidade,
+        'estado': e.estado,
+        'cep': e.cep,
         'mensalidade': e.mensalidade,
         'quantidade_alunos': e.quantidade_alunos,
         'metodologia': e.metodologia,
-        'email': e.email
+        'email': e.email,
+        'avaliacao': e.avaliacao
     } for e in escolas]
     return jsonify(result), 200
 
@@ -334,12 +486,13 @@ def filtro_preco():
             'name': 'min_avaliacao',
             'in': 'query',
             'required': True,
-            'type': 'number'
+            'type': 'number',
+            'description': 'Avaliação mínima'
         }
     ],
     'responses': {
         200: {
-            'description': 'Escolas filtradas por avaliação mínima (não implementado)',
+            'description': 'Escolas filtradas por avaliação mínima',
             'schema': {
                 'type': 'array',
                 'items': {
@@ -348,11 +501,17 @@ def filtro_preco():
                         'id': {'type': 'integer'},
                         'nome': {'type': 'string'},
                         'telefone': {'type': 'string'},
-                        'endereco': {'type': 'string'},
+                        'rua': {'type': 'string'},
+                        'numero': {'type': 'string'}, 
+                        'bairro': {'type': 'string'},
+                        'cidade': {'type': 'string'},
+                        'estado': {'type': 'string'},
+                        'cep': {'type': 'string'},
                         'mensalidade': {'type': 'number'},
                         'quantidade_alunos': {'type': 'integer'},
                         'metodologia': {'type': 'string'},
-                        'email': {'type': 'string'}
+                        'email': {'type': 'string'},
+                        'avaliacao': {'type': 'number'}
                     }
                 }
             }
@@ -362,16 +521,22 @@ def filtro_preco():
 def filtro_avaliacao():
     min_avaliacao = request.args.get('min_avaliacao')
 
-    escolas = Escola.query.all()
+    escolas = Escola.query.filter(Escola.avaliacao >= min_avaliacao).all()
     result = [{
         'id': e.id,
         'nome': e.nome,
         'telefone': e.telefone,
-        'endereco': e.endereco,
+        'rua': e.rua,
+        'numero': e.numero,  
+        'bairro': e.bairro,
+        'cidade': e.cidade,
+        'estado': e.estado,
+        'cep': e.cep,
         'mensalidade': e.mensalidade,
         'quantidade_alunos': e.quantidade_alunos,
         'metodologia': e.metodologia,
-        'email': e.email
+        'email': e.email,
+        'avaliacao': e.avaliacao
     } for e in escolas]
     return jsonify(result), 200
 
@@ -384,13 +549,15 @@ def filtro_avaliacao():
             'name': 'latitude',
             'in': 'query',
             'required': True,
-            'type': 'number'
+            'type': 'number',
+            'description': 'Latitude do ponto de referência'
         },
         {
             'name': 'longitude',
             'in': 'query',
             'required': True,
-            'type': 'number'
+            'type': 'number',
+            'description': 'Longitude do ponto de referência'
         }
     ],
     'responses': {
@@ -404,11 +571,17 @@ def filtro_avaliacao():
                         'id': {'type': 'integer'},
                         'nome': {'type': 'string'},
                         'telefone': {'type': 'string'},
-                        'endereco': {'type': 'string'},
+                        'rua': {'type': 'string'},
+                        'numero': {'type': 'string'},  
+                        'bairro': {'type': 'string'},
+                        'cidade': {'type': 'string'},
+                        'estado': {'type': 'string'},
+                        'cep': {'type': 'string'},
                         'mensalidade': {'type': 'number'},
                         'quantidade_alunos': {'type': 'integer'},
                         'metodologia': {'type': 'string'},
-                        'email': {'type': 'string'}
+                        'email': {'type': 'string'},
+                        'avaliacao': {'type': 'number'}
                     }
                 }
             }
@@ -418,17 +591,21 @@ def filtro_avaliacao():
 def filtro_localizacao():
     latitude = request.args.get('latitude')
     longitude = request.args.get('longitude')
-    # A implementação real deve utilizar a API de geocodificação do Google Maps para calcular a distância.
-    # Este exemplo apenas retorna todas as escolas.
     escolas = Escola.query.all()
     result = [{
         'id': e.id,
         'nome': e.nome,
         'telefone': e.telefone,
-        'endereco': e.endereco,
+        'rua': e.rua,
+        'numero': e.numero,  
+        'bairro': e.bairro,
+        'cidade': e.cidade,
+        'estado': e.estado,
+        'cep': e.cep,
         'mensalidade': e.mensalidade,
         'quantidade_alunos': e.quantidade_alunos,
         'metodologia': e.metodologia,
-        'email': e.email
+        'email': e.email,
+        'avaliacao': e.avaliacao
     } for e in escolas]
     return jsonify(result), 200

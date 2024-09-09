@@ -2,19 +2,21 @@ import os
 from flask import Flask
 from app.db import db, ma
 from flasgger import Swagger
+from flask_cors import CORS
+from flask_migrate import Migrate
 
 def create_app():
     app = Flask(__name__)
-
+    CORS(app)
     # Verifica se o diretorio instance para db esteja criado, pois tive problemas por esse diretório não esta criado. 
-    
+
     instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../instance')
     if not os.path.exists(instance_path):
         os.makedirs(instance_path)
 
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{instance_path}/database.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
+    migrate = Migrate(app, db)
     db.init_app(app)
     ma.init_app(app)
 
@@ -38,7 +40,6 @@ def create_app():
         "basePath": "/",  # Base path para todas as rotas
         "schemes": [
             "http",
-            "https"
         ],
         "tags": [
             {
