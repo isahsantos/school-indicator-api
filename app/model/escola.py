@@ -23,3 +23,4 @@ class Escola(db.Model):
     metodologia = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     avaliacao = db.Column(db.Float)
+    imagem_url = db.Column(db.String(255))

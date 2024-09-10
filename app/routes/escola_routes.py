@@ -30,21 +30,23 @@ def buscar_endereco_por_cep(cep):
                     'nome': {'type': 'string'},
                     'telefone': {'type': 'string'},
                     'cep': {'type': 'string'},
-                    'numero': {'type': 'string'},  
+                    'numero': {'type': 'string'},
                     'mensalidade': {'type': 'number'},
                     'quantidade_alunos': {'type': 'integer'},
                     'metodologia': {'type': 'string'},
-                    'email': {'type': 'string'}
+                    'email': {'type': 'string'},
+                    'imagem_url': {'type': 'string'}
                 },
                 'example': {
                     'nome': 'Escola Exemplo',
                     'telefone': '(11) 1234-5678',
                     'cep': '01000-000',
-                    'numero': '123',  
+                    'numero': '123',
                     'mensalidade': 1500.00,
                     'quantidade_alunos': 250,
                     'metodologia': 'Construtivista',
-                    'email': 'contato@escolaexemplo.com.br'
+                    'email': 'contato@escolaexemplo.com.br',
+                    'imagem_url': 'http://exemplo.com/imagem.jpg'
                 }
             }
         }
@@ -69,7 +71,7 @@ def create_escola():
         nome=data['nome'],
         telefone=data['telefone'],
         rua=cep_info['logradouro'],
-        numero=data['numero'],  
+        numero=data['numero'],
         bairro=cep_info['bairro'],
         cidade=cep_info['localidade'],
         estado=cep_info['uf'],
@@ -77,7 +79,8 @@ def create_escola():
         mensalidade=data['mensalidade'],
         quantidade_alunos=data['quantidade_alunos'],
         metodologia=data['metodologia'],
-        email=data['email']
+        email=data['email'],
+        imagem_url=data.get('imagem_url')  # Adicionando a URL da imagem
     )
     db.session.add(new_escola)
     db.session.commit()
@@ -99,7 +102,7 @@ def create_escola():
                         'nome': {'type': 'string'},
                         'telefone': {'type': 'string'},
                         'rua': {'type': 'string'},
-                        'numero': {'type': 'string'},  
+                        'numero': {'type': 'string'},
                         'bairro': {'type': 'string'},
                         'cidade': {'type': 'string'},
                         'estado': {'type': 'string'},
@@ -108,6 +111,7 @@ def create_escola():
                         'quantidade_alunos': {'type': 'integer'},
                         'metodologia': {'type': 'string'},
                         'email': {'type': 'string'},
+                        'imagem_url': {'type': 'string'},
                         'avaliacao': {'type': 'number'}
                     }
                 },
@@ -117,7 +121,7 @@ def create_escola():
                         'nome': 'Escola Exemplo',
                         'telefone': '(11) 1234-5678',
                         'rua': 'Rua das Flores',
-                        'numero': '123', 
+                        'numero': '123',
                         'bairro': 'Centro',
                         'cidade': 'São Paulo',
                         'estado': 'SP',
@@ -126,6 +130,7 @@ def create_escola():
                         'quantidade_alunos': 250,
                         'metodologia': 'Construtivista',
                         'email': 'contato@escolaexemplo.com.br',
+                        'imagem_url': 'http://exemplo.com/imagem.jpg',
                         'avaliacao': 4.5
                     }
                 ]
@@ -140,7 +145,7 @@ def get_escolas():
         'nome': e.nome,
         'telefone': e.telefone,
         'rua': e.rua,
-        'numero': e.numero, 
+        'numero': e.numero,
         'bairro': e.bairro,
         'cidade': e.cidade,
         'estado': e.estado,
@@ -149,6 +154,7 @@ def get_escolas():
         'quantidade_alunos': e.quantidade_alunos,
         'metodologia': e.metodologia,
         'email': e.email,
+        'imagem_url': e.imagem_url,
         'avaliacao': e.avaliacao
     } for e in escolas]
     return jsonify(result), 200
@@ -176,7 +182,7 @@ def get_escolas():
                     'nome': {'type': 'string'},
                     'telefone': {'type': 'string'},
                     'rua': {'type': 'string'},
-                    'numero': {'type': 'string'}, 
+                    'numero': {'type': 'string'},
                     'bairro': {'type': 'string'},
                     'cidade': {'type': 'string'},
                     'estado': {'type': 'string'},
@@ -185,6 +191,7 @@ def get_escolas():
                     'quantidade_alunos': {'type': 'integer'},
                     'metodologia': {'type': 'string'},
                     'email': {'type': 'string'},
+                    'imagem_url': {'type': 'string'},
                     'avaliacao': {'type': 'number'}
                 },
                 'example': {
@@ -192,7 +199,7 @@ def get_escolas():
                     'nome': 'Escola Exemplo',
                     'telefone': '(11) 1234-5678',
                     'rua': 'Rua das Flores',
-                    'numero': '123', 
+                    'numero': '123',
                     'bairro': 'Centro',
                     'cidade': 'São Paulo',
                     'estado': 'SP',
@@ -201,6 +208,7 @@ def get_escolas():
                     'quantidade_alunos': 250,
                     'metodologia': 'Construtivista',
                     'email': 'contato@escolaexemplo.com.br',
+                    'imagem_url': 'http://exemplo.com/imagem.jpg',
                     'avaliacao': 4.5
                 }
             }
@@ -217,7 +225,7 @@ def get_escola(id):
         'nome': escola.nome,
         'telefone': escola.telefone,
         'rua': escola.rua,
-        'numero': escola.numero, 
+        'numero': escola.numero,
         'bairro': escola.bairro,
         'cidade': escola.cidade,
         'estado': escola.estado,
@@ -226,6 +234,7 @@ def get_escola(id):
         'quantidade_alunos': escola.quantidade_alunos,
         'metodologia': escola.metodologia,
         'email': escola.email,
+        'imagem_url': escola.imagem_url,
         'avaliacao': escola.avaliacao
     }
     return jsonify(result), 200
@@ -252,7 +261,7 @@ def get_escola(id):
                     'nome': {'type': 'string', 'description': 'Nome da escola'},
                     'telefone': {'type': 'string', 'description': 'Telefone da escola'},
                     'rua': {'type': 'string', 'description': 'Rua da escola'},
-                    'numero': {'type': 'string', 'description': 'Número do endereço'}, 
+                    'numero': {'type': 'string', 'description': 'Número do endereço'},
                     'bairro': {'type': 'string', 'description': 'Bairro da escola'},
                     'cidade': {'type': 'string', 'description': 'Cidade da escola'},
                     'estado': {'type': 'string', 'description': 'Estado da escola (UF)'},
@@ -261,13 +270,14 @@ def get_escola(id):
                     'quantidade_alunos': {'type': 'integer', 'description': 'Quantidade de alunos matriculados'},
                     'metodologia': {'type': 'string', 'description': 'Metodologia de ensino da escola'},
                     'email': {'type': 'string', 'description': 'Email de contato da escola'},
+                    'imagem_url': {'type': 'string', 'description': 'URL da imagem da escola'},
                     'avaliacao': {'type': 'number', 'description': 'Avaliação média da escola'}
                 },
                 'example': {
                     'nome': 'Escola Exemplo',
                     'telefone': '(11) 1234-5678',
                     'rua': 'Rua das Flores',
-                    'numero': '123',  
+                    'numero': '123',
                     'bairro': 'Centro',
                     'cidade': 'São Paulo',
                     'estado': 'SP',
@@ -276,6 +286,7 @@ def get_escola(id):
                     'quantidade_alunos': 250,
                     'metodologia': 'Construtivista',
                     'email': 'contato@escolaexemplo.com.br',
+                    'imagem_url': 'http://exemplo.com/imagem.jpg',
                     'avaliacao': 4.5
                 }
             }
@@ -307,11 +318,12 @@ def update_escola(id):
 
     escola.nome = data.get('nome', escola.nome)
     escola.telefone = data.get('telefone', escola.telefone)
-    escola.numero = data.get('numero', escola.numero)  
+    escola.numero = data.get('numero', escola.numero)
     escola.mensalidade = data.get('mensalidade', escola.mensalidade)
     escola.quantidade_alunos = data.get('quantidade_alunos', escola.quantidade_alunos)
     escola.metodologia = data.get('metodologia', escola.metodologia)
     escola.email = data.get('email', escola.email)
+    escola.imagem_url = data.get('imagem_url', escola.imagem_url)
     escola.avaliacao = data.get('avaliacao', escola.avaliacao)
 
     db.session.commit()
@@ -370,7 +382,7 @@ def delete_escola(id):
                         'nome': {'type': 'string'},
                         'telefone': {'type': 'string'},
                         'rua': {'type': 'string'},
-                        'numero': {'type': 'string'},  
+                        'numero': {'type': 'string'},
                         'bairro': {'type': 'string'},
                         'cidade': {'type': 'string'},
                         'estado': {'type': 'string'},
@@ -379,6 +391,7 @@ def delete_escola(id):
                         'quantidade_alunos': {'type': 'integer'},
                         'metodologia': {'type': 'string'},
                         'email': {'type': 'string'},
+                        'imagem_url': {'type': 'string'},
                         'avaliacao': {'type': 'number'}
                     }
                 }
@@ -394,7 +407,7 @@ def filtro_metodologia():
         'nome': e.nome,
         'telefone': e.telefone,
         'rua': e.rua,
-        'numero': e.numero,  
+        'numero': e.numero,
         'bairro': e.bairro,
         'cidade': e.cidade,
         'estado': e.estado,
@@ -403,6 +416,7 @@ def filtro_metodologia():
         'quantidade_alunos': e.quantidade_alunos,
         'metodologia': e.metodologia,
         'email': e.email,
+        'imagem_url': e.imagem_url,
         'avaliacao': e.avaliacao
     } for e in escolas]
     return jsonify(result), 200
@@ -448,6 +462,7 @@ def filtro_metodologia():
                         'quantidade_alunos': {'type': 'integer'},
                         'metodologia': {'type': 'string'},
                         'email': {'type': 'string'},
+                        'imagem_url': {'type': 'string'},
                         'avaliacao': {'type': 'number'}
                     }
                 }
@@ -464,7 +479,7 @@ def filtro_preco():
         'nome': e.nome,
         'telefone': e.telefone,
         'rua': e.rua,
-        'numero': e.numero, 
+        'numero': e.numero,
         'bairro': e.bairro,
         'cidade': e.cidade,
         'estado': e.estado,
@@ -473,6 +488,7 @@ def filtro_preco():
         'quantidade_alunos': e.quantidade_alunos,
         'metodologia': e.metodologia,
         'email': e.email,
+        'imagem_url': e.imagem_url,
         'avaliacao': e.avaliacao
     } for e in escolas]
     return jsonify(result), 200
@@ -480,7 +496,7 @@ def filtro_preco():
 @escola_routes.route('/escolas/filtro/avaliacao', methods=['GET'])
 @swag_from({
     'tags': ['Escolas'],
-    'description': 'Filtra escolas por avaliação (a ser implementado)',
+    'description': 'Filtra escolas por avaliação',
     'parameters': [
         {
             'name': 'min_avaliacao',
@@ -502,7 +518,7 @@ def filtro_preco():
                         'nome': {'type': 'string'},
                         'telefone': {'type': 'string'},
                         'rua': {'type': 'string'},
-                        'numero': {'type': 'string'}, 
+                        'numero': {'type': 'string'},
                         'bairro': {'type': 'string'},
                         'cidade': {'type': 'string'},
                         'estado': {'type': 'string'},
@@ -511,6 +527,7 @@ def filtro_preco():
                         'quantidade_alunos': {'type': 'integer'},
                         'metodologia': {'type': 'string'},
                         'email': {'type': 'string'},
+                        'imagem_url': {'type': 'string'},
                         'avaliacao': {'type': 'number'}
                     }
                 }
@@ -527,7 +544,7 @@ def filtro_avaliacao():
         'nome': e.nome,
         'telefone': e.telefone,
         'rua': e.rua,
-        'numero': e.numero,  
+        'numero': e.numero,
         'bairro': e.bairro,
         'cidade': e.cidade,
         'estado': e.estado,
@@ -536,6 +553,7 @@ def filtro_avaliacao():
         'quantidade_alunos': e.quantidade_alunos,
         'metodologia': e.metodologia,
         'email': e.email,
+        'imagem_url': e.imagem_url,
         'avaliacao': e.avaliacao
     } for e in escolas]
     return jsonify(result), 200
@@ -572,7 +590,7 @@ def filtro_avaliacao():
                         'nome': {'type': 'string'},
                         'telefone': {'type': 'string'},
                         'rua': {'type': 'string'},
-                        'numero': {'type': 'string'},  
+                        'numero': {'type': 'string'},
                         'bairro': {'type': 'string'},
                         'cidade': {'type': 'string'},
                         'estado': {'type': 'string'},
@@ -581,6 +599,7 @@ def filtro_avaliacao():
                         'quantidade_alunos': {'type': 'integer'},
                         'metodologia': {'type': 'string'},
                         'email': {'type': 'string'},
+                        'imagem_url': {'type': 'string'},
                         'avaliacao': {'type': 'number'}
                     }
                 }
@@ -597,7 +616,7 @@ def filtro_localizacao():
         'nome': e.nome,
         'telefone': e.telefone,
         'rua': e.rua,
-        'numero': e.numero,  
+        'numero': e.numero,
         'bairro': e.bairro,
         'cidade': e.cidade,
         'estado': e.estado,
@@ -606,6 +625,7 @@ def filtro_localizacao():
         'quantidade_alunos': e.quantidade_alunos,
         'metodologia': e.metodologia,
         'email': e.email,
+        'imagem_url': e.imagem_url,
         'avaliacao': e.avaliacao
     } for e in escolas]
     return jsonify(result), 200
