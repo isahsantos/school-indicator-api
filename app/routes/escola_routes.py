@@ -80,7 +80,7 @@ def create_escola():
         quantidade_alunos=data['quantidade_alunos'],
         metodologia=data['metodologia'],
         email=data['email'],
-        imagem_url=data.get('imagem_url')  # Adicionando a URL da imagem
+        imagem_url=data.get('imagem_url')  
     )
     db.session.add(new_escola)
     db.session.commit()
