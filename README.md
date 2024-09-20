@@ -79,8 +79,8 @@ Este projeto é uma API desenvolvida em Flask para gerenciar escolas e pais/resp
 
 3. Instale as dependências:
    ```bash
-   python3 -m venv venv
-   source venv/bin/activate
+   pip install -r requirements.txt
+
 
 4. Excute a aplicação:
    ```bash
