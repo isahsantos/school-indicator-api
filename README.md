@@ -73,12 +73,12 @@ Este projeto é uma API desenvolvida em Flask para gerenciar escolas e pais/resp
    cd school-indicator-api
 
 2. Crie e ative o ambiente virtual do Python: 
-  ```bash
+   ```bash
    python3 -m venv venv
    source venv/bin/activate
 
 3. Instale as dependências:
-    ```bash
+   ```bash
    python3 -m venv venv
    source venv/bin/activate
 
