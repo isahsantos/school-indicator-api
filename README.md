@@ -85,6 +85,11 @@ Este projeto é uma API desenvolvida em Flask para gerenciar escolas e pais/resp
 4. Excute a aplicação:
    ```bash
    flask run
+   
+5. Executando via docker: 
+   ```bash
+   docker build -t school-indicator-api . 
+   docker run -d -p 5000:5000 school-indicator-api
 
 ## 🚀 Uso
 Após a inicialização da API, você pode acessar a documentação dos endpoints via Swagger na seguinte URL:
